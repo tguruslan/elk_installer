@@ -87,9 +87,25 @@ server {
         proxy_cache_bypass \$http_upgrade;
     }
 }
+#API
+server {
+    listen 9201;
+    server_name _;
+
+    location / {
+        auth_basic "Restricted Access";
+        auth_basic_user_file /etc/nginx/htpasswd.elk;
+        proxy_pass http://localhost:9200;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 EOF
 
-systemctl enable --now elasticsearch logstash kibana nginx
+systemctl enable --now elasticsearch logstash kibana nginx firewalld
 
 mkdir /etc/curator
 cat <<EOF | sudo tee /etc/curator/config.yml
@@ -137,5 +153,12 @@ actions:
 
 EOF
 
-echo '5 * * * * /usr/bin/curator --config /etc/curator/config.yml /etc/curator/action.yml' >>  /etc/crontab
+echo '5 * * * * /usr/bin/curator --config /etc/curator/config.yml /etc/curator/action.yml' >> /etc/crontab
+
+/bin/firewall-cmd --zone=public --add-service=http --permanent
+/bin/firewall-cmd --zone=public --add-port=9201/tcp --permanent
+/bin/firewall-cmd --zone=public --remove-port=5601/tcp --permanent
+/bin/firewall-cmd --zone=public --remove-port=9200/tcp --permanent
+/bin/firewall-cmd --reload
+
 set +x
