@@ -100,6 +100,26 @@ LimitNOFILE=16384
 WantedBy=multi-user.target
 EOF
 
+cat <<EOF | sudo tee /etc/systemd/system/kibana.service
+[Unit]
+Description=Kibana
+StartLimitIntervalSec=30
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=kibana
+Group=kibana
+EnvironmentFile=-/etc/default/kibana
+EnvironmentFile=-/etc/sysconfig/kibana
+ExecStart=/usr/share/kibana/bin/kibana "-c /etc/kibana/kibana.yml"
+Restart=always
+WorkingDirectory=/
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 mkdir -p /etc/nginx/conf.d/
 
 read -e -p "Enter the login for kibana: " kibana_login
