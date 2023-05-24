@@ -72,7 +72,7 @@ sudo htpasswd -c /etc/nginx/htpasswd.elk $kibana_login
 
 cat <<EOF | sudo tee /etc/nginx/conf.d/kibana.conf
 server {
-    listen 80;
+    listen 80 default_server;
     server_name _;
 
     location / {
@@ -88,7 +88,7 @@ server {
 }
 #API
 server {
-    listen 9201;
+    listen 9201 default_server;
     server_name _;
 
     location / {
