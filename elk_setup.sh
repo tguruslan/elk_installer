@@ -44,42 +44,6 @@ EOF
 
 sed -i 's/^#server.hos.*/server.host: "0.0.0.0"/g' /etc/kibana/kibana.yml
 
-
-cat <<EOF | sudo tee /etc/systemd/system/elasticsearch.service
-[Unit]
-Description=Elasticsearch
-Documentation=http://www.elastic.co
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-RuntimeDirectory=elasticsearch
-PrivateTmp=true
-Environment=ES_HOME=/usr/share/elasticsearch
-Environment=ES_PATH_CONF=/etc/elasticsearch
-Environment=PID_DIR=/var/run/elasticsearch
-EnvironmentFile=-/etc/sysconfig/elasticsearch
-WorkingDirectory=/usr/share/elasticsearch
-User=elasticsearch
-Group=elasticsearch
-ExecStart=/usr/share/elasticsearch/bin/elasticsearch -p ${PID_DIR}/elasticsearch.pid --quiet
-StandardOutput=journal
-StandardError=inherit
-LimitNOFILE=65535
-LimitNPROC=4096
-LimitAS=infinity
-LimitFSIZE=infinity
-TimeoutStopSec=0
-KillSignal=SIGTERM
-KillMode=process
-SendSIGKILL=no
-SuccessExitStatus=143
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
 cat <<EOF | sudo tee /etc/systemd/system/logstash.service
 [Unit]
 Description=logstash
@@ -95,26 +59,6 @@ Restart=always
 WorkingDirectory=/
 Nice=19
 LimitNOFILE=16384
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat <<EOF | sudo tee /etc/systemd/system/kibana.service
-[Unit]
-Description=Kibana
-StartLimitIntervalSec=30
-StartLimitBurst=3
-
-[Service]
-Type=simple
-User=kibana
-Group=kibana
-EnvironmentFile=-/etc/default/kibana
-EnvironmentFile=-/etc/sysconfig/kibana
-ExecStart=/usr/share/kibana/bin/kibana "-c /etc/kibana/kibana.yml"
-Restart=always
-WorkingDirectory=/
 
 [Install]
 WantedBy=multi-user.target
